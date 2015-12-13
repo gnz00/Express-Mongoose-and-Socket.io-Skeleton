@@ -1,0 +1,12 @@
+dev:
+  sudo \
+    DEBUG=$$APP_NAME:* \
+    DB_USER=root \
+    DB_PASSWORD=root \
+    DB_HOST=changeme.com \
+    DB_PORT=27335 \
+    DB_NAME=sampleapp \
+    NODE_ENV=development \
+    SSL_KEY=$(realpath ./ssl/server.key) \
+    SSL_CERT=$(realpath ./ssl/server.crt) \
+    nodemon ./bin/www
