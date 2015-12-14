@@ -4,7 +4,7 @@
  * Module Dependencies
  */
 
-var pkg               = require('../package.json');
+var pkg               = require('../../package.json');
 var dotenv            = require('dotenv');  // https://www.npmjs.com/package/dotenv
 
 // *For Development Purposes*
@@ -36,9 +36,19 @@ config.author         = pkg.author;
 config.keywords       = pkg.keywords;
 config.engine         = pkg.engines.node || pkg.engines.iojs;
 
-config.appName        = process.env.APP_NAME || 'SkeletonApp';
-config.port           = process.env.PORT || 80;
-config.httpsPort      = process.env.HTTPS_PORT || 443;
+
+config.http = {};
+config.http.enable    = true,
+config.http.host      = process.env.HOST || 'localhost',
+config.http.port      = process.env.PORT || 3000
+
+config.https = {};
+config.https.enable   = false,
+config.https.host     = process.env.HOST || 'localhost',
+config.https.port     = process.env.PORT || 4000
+config.https.key      = process.env.SSL_KEY || null
+config.https.cert     = process.env.SSL_CERT || null
+
 config.ga             = process.env.GA   || 'google analytics key';
 
 /**
@@ -51,13 +61,13 @@ config.logging        = process.env.LOGGING || false;
  * Database Configuration
  */
 
-config.mongodb        = {};
+config.mongodb         = {};
 config.mongodb.user    = process.env.MONGODB_USER || 'localhost';
 config.mongodb.password    = process.env.MONGODB_PASSWORD || 'localhost';
 config.mongodb.host    = process.env.MONGODB_HOST || 'localhost';
 config.mongodb.port    = process.env.MONGODB_PORT || 27335;
 config.mongodb.name    = process.env.MONGODB_NAME || 'SampleApp';
-config.mongodb.url    = process.env.MONGODB_URL || `mongodb://${config.mongodb.user}:${config.mongodb.password}@${config.mongodb.host}:${config.mongodb.port}/${config.mongodb.name}`;
+config.mongodb.url     = process.env.MONGODB_URL || `mongodb://${config.mongodb.user}:${config.mongodb.password}@${config.mongodb.host}:${config.mongodb.port}/${config.mongodb.name}`;
 
 /**
  * Session Configuration
@@ -110,28 +120,28 @@ config.localAuth               = true;
 config.verificationRequired    = false;  // on/off for user email verification at signup
 config.enhancedSecurity        = true;   // on/off for two factor authentication
 
-// Facebook
-config.facebookAuth            = true;
-config.facebook                = {};
-config.facebook.clientID       = process.env.FACEBOOK_KEY    || 'Your Key';
-config.facebook.clientSecret   = process.env.FACEBOOK_SECRET || 'Your Secret';
-
-// Github
-config.githubAuth              = true;
-config.github                  = {};
-config.github.clientID         = process.env.GITHUB_KEY    || 'Your Key';
-config.github.clientSecret     = process.env.GITHUB_SECRET || 'Your Secret';
-
-// Twitter
-config.twitterAuth             = true;
-config.twitter                 = {};
-config.twitter.consumerKey     = process.env.TWITTER_KEY    || 'Your Key';
-config.twitter.consumerSecret  = process.env.TWITTER_SECRET || 'Your Secret';
-
-// Google
-config.googleAuth              = true;
-config.google                  = {};
-config.google.clientID         = process.env.GOOGLE_KEY    || 'Your Key';
-config.google.clientSecret     = process.env.GOOGLE_SECRET || 'Your Secret';
+config.OAuth = {
+  "server": {
+    "protocol": config.https.enabled ? 'https' : 'http',
+    "host": config.https.enabled ? `${config.https.host}:${config.https.port}` : `${config.http.host}:${config.http.port}`
+  },
+  "facebook": {
+    "key": `${process.env.FACEBOOK_KEY}`,
+    "secret": `${process.env.FACEBOOK_SECRET}`,
+    "callback": "/auth/facebook/callback",
+    "scope": [
+      "email"
+    ]
+  },
+  "google": {
+    "key": `${process.env.GOOGLE_KEY}`,
+    "secret": `${process.env.GOOGLE_SECRET}`,
+    "callback": "/auth/google/callback",
+    "scope": [
+      "profile",
+      "email"
+    ]
+  }
+};
 
 module.exports = config;

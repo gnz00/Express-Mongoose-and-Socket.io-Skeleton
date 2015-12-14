@@ -13,20 +13,20 @@ block content
           input(type='hidden', name='_csrf', value=_csrf)
           legend Sign In
           .form-group
-            if config.facebookAuth
-              a.btn.btn-block.btn-social.btn-facebook.btn-lg(href='/auth/facebook')
+            if config.OAuth.facebook
+              a.btn.btn-block.btn-social.btn-facebook.btn-lg(href='/connect/facebook')
                 i.fa.fa-fw.fa-facebook
                 | &nbsp;Sign in with Facebook
-            if config.twitterAuth
-              a.btn.btn-block.btn-social.btn-twitter.btn-lg(href='/auth/twitter')
+            if config.OAuth.twitter
+              a.btn.btn-block.btn-social.btn-twitter.btn-lg(href='/connect/twitter')
                 i.fa.fa-fw.fa-twitter
                 | &nbsp;Sign in with Twitter
-            if config.githubAuth
-              a.btn.btn-block.btn-social.btn-github.btn-lg(href='/auth/github')
+            if config.OAuth.github
+              a.btn.btn-block.btn-social.btn-github.btn-lg(href='/connect/github')
                 i.fa.fa-fw.fa-github
                 | &nbsp;Sign in with GitHub
-            if config.googleAuth
-              a.btn.btn-block.btn-social.btn-google-plus.btn-lg(href='/auth/google')
+            if config.OAuth.google
+              a.btn.btn-block.btn-social.btn-google-plus.btn-lg(href='/connect/google')
                 i.fa.fa-fw.fa-google-plus
                 | &nbsp;Sign in with Google
           if config.localAuth
@@ -68,20 +68,3 @@ block content
           a(href='/terms')  Terms of Use
           |  and
           a(href='/privacy')  Privacy Policy.</em>
-
-block scripts
-  script.
-    $(document).ready(function() {
-      if ( #{tooManyAttempts} === true ) {
-        $("input").prop('disabled', true);
-        $("button").prop('disabled', true);
-      }
-    });
-
-//- Form Notes
-//- ===========================================
-//- 1) Always add labels!
-//-    Screen readers will have trouble with your forms if you don't include a label for every input.
-//-    NOTE: you can hide the labels using the .sr-only class.
-//- 2) Use proper HTML5 input types (email, password, date, etc.)  This adds some HTML5 validation as
-//-    well as the correct keyboard on mobile devices.

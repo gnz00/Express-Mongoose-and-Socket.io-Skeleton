@@ -13,11 +13,11 @@ function format(time) {
 
 async function run(fn, options) {
   const start = new Date();
-  console.log(`[${format(start)}] Starting '${fn.name}'...`);
-  await fn(options);
+  console.log(`[${format(start)}] Starting '${fn.default.name}'...`);
+  await fn.default(options);
   const end = new Date();
   const time = end.getTime() - start.getTime();
-  console.log(`[${format(end)}] Finished '${fn.name}' after ${time} ms`);
+  console.log(`[${format(end)}] Finished '${fn.default.name}' after ${time} ms`);
 }
 
 if (process.mainModule.children.length === 0 && process.argv.length > 2) {

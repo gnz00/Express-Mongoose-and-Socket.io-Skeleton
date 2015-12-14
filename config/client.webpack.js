@@ -1,11 +1,12 @@
 import path from 'path';
 import webpack from 'webpack';
 import merge from 'lodash.merge';
-import AssetsPlugin from 'assets-webpack-plugin';
+import ExtractTextPlugin from "extract-text-webpack-plugin";
 
 const DEBUG = !process.argv.includes('--release');
 const VERBOSE = process.argv.includes('--verbose');
 const WATCH = global.WATCH === undefined ? false : global.WATCH;
+
 const AUTOPREFIXER_BROWSERS = [
   'Android 2.3',
   'Android >= 4',
@@ -24,6 +25,8 @@ const GLOBALS = {
 const config = {
   entry: {
     client: [
+      'babel-polyfill',
+      './src/client/client.less',
       ...(WATCH ? ['webpack-hot-middleware/client'] : []),
       './src/client/client.js',
     ],
@@ -31,19 +34,17 @@ const config = {
   output: {
     publicPath: '/',
     sourcePrefix: '  ',
-    path: path.join(__dirname, '../build/public/javascripts'),
+    path: path.join(__dirname, '../build/public/'),
     filename: DEBUG ? '[name].js?[hash]' : '[name].[hash].js',
   },
 
   // Choose a developer tool to enhance debugging
   // http://webpack.github.io/docs/configuration.html#devtool
-  devtool: DEBUG ? 'cheap-module-eval-source-map' : false,
+  devtool: DEBUG ? 'eval' : false,
   plugins: [
+    new ExtractTextPlugin("[name].css"),
+    new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.DefinePlugin(GLOBALS),
-    new AssetsPlugin({
-      path: path.join(__dirname, '../build'),
-      filename: 'assets.json',
-    }),
     ...(!DEBUG ? [
       new webpack.optimize.DedupePlugin(),
       new webpack.optimize.UglifyJsPlugin({
@@ -59,14 +60,6 @@ const config = {
     ] : []),
   ],
 
-  externals: [
-    /^\.\/assets\.json$/,
-    function filter(context, request, cb) {
-      const isExternal = request.match(/^[@a-z][a-z\/\.\-0-9]*$/i);
-      cb(null, Boolean(isExternal));
-    },
-  ],
-
   cache: DEBUG,
   debug: DEBUG,
 
@@ -80,32 +73,30 @@ const config = {
     chunkModules: VERBOSE,
     cached: VERBOSE,
     cachedAssets: VERBOSE,
+    children: false
   },
 
-  plugins: [
-    new webpack.optimize.OccurenceOrderPlugin(),
-  ],
-
   resolve: {
-    extensions: ['', '.webpack.js', '.web.js', '.js', '.jsx', '.json'],
+    // '' is needed to allow imports an extension
+    extensions: ['', '.js', '.jsx'],
   },
 
   module: {
     loaders: [
       {
         test: /\.jsx?$/,
-        include: [
-          path.resolve(__dirname, '../src/client'),
-        ],
-        loader: 'babel-loader',
+        exclude: /(node_modules|bower_components)/,
+        loader: 'babel' // 'babel-loader' is also a legal name to reference
       }, {
         test: /\.scss$/,
-        loaders: [
-          'style-loader',
-          'css-loader?' + (DEBUG ? 'sourceMap&' : 'minimize&') +
-          'modules&localIdentName=[name]_[local]_[hash:base64:3]',
-          'postcss-loader',
-        ],
+        loader: ExtractTextPlugin.extract(
+          "style-loader",
+          'css-loader?' + (DEBUG ? 'sourceMap&' : 'minimize&') + 'modules&localIdentName=[name]_[local]_[hash:base64:3]',
+          'postcss-loader'
+        )
+      }, {
+        test: /\.less$/,
+        loader: ExtractTextPlugin.extract("style-loader", "css-loader!less-loader")
       }, {
         test: /\.json$/,
         loader: 'json-loader',
@@ -113,24 +104,16 @@ const config = {
         test: /\.txt$/,
         loader: 'raw-loader',
       }, {
-        test: /\.(png|jpg|jpeg|gif|svg|woff|woff2)$/,
+        test: /\.(png|jpg|jpeg|gif)$/,
         loader: 'url-loader?limit=10000',
-      }, {
-        test: /\.(eot|ttf|wav|mp3)$/,
-        loader: 'file-loader',
       },
+      { test: /\.woff(2)?(\?v=\d+\.\d+\.\d+)?$/,   loader: "url?limit=10000&mimetype=application/font-woff" },
+      { test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,    loader: "url?limit=10000&mimetype=application/octet-stream" },
+      { test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,    loader: "file" },
+      { test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,    loader: "url?limit=10000&mimetype=image/svg+xml" }
     ],
-  },
-
-  postcss: function plugins(bundler) {
-    return [
-      require('postcss-import')({ addDependencyTo: bundler }),
-      require('precss')(),
-      require('autoprefixer')({ browsers: AUTOPREFIXER_BROWSERS }),
-    ];
-  },
+  }
 };
-
 
 // Enable React Transform in the "watch" mode
 config.module.loaders

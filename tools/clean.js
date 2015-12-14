@@ -1,3 +1,4 @@
+'use strict';
 /**
  * React Starter Kit (http://www.reactstarterkit.com/)
  *

@@ -23,7 +23,10 @@ const GLOBALS = {
 
 const config = {
 
-  entry: './src/server/server.js',
+  entry: [
+      'babel-polyfill',
+      './src/server/server.js'
+  ],
   output: {
     publicPath: '/',
     sourcePrefix: '  ',
@@ -82,35 +85,13 @@ const config = {
         ],
         loader: 'babel-loader',
       }, {
-        test: /\.scss$/,
-        loaders: [
-          'style-loader',
-          'css-loader?' + (DEBUG ? 'sourceMap&' : 'minimize&') +
-          'modules&localIdentName=[name]_[local]_[hash:base64:3]',
-          'postcss-loader',
-        ],
-      }, {
         test: /\.json$/,
         loader: 'json-loader',
       }, {
         test: /\.txt$/,
         loader: 'raw-loader',
-      }, {
-        test: /\.(png|jpg|jpeg|gif|svg|woff|woff2)$/,
-        loader: 'url-loader?limit=10000',
-      }, {
-        test: /\.(eot|ttf|wav|mp3)$/,
-        loader: 'file-loader',
-      },
-    ],
-  },
-
-  postcss: function plugins(bundler) {
-    return [
-      require('postcss-import')({ addDependencyTo: bundler }),
-      require('precss')(),
-      require('autoprefixer')({ browsers: AUTOPREFIXER_BROWSERS }),
-    ];
+      }
+    ]
   }
 };
 

@@ -1,3 +1,5 @@
+require('babel-polyfill');
+
 /**
  * React Starter Kit (http://www.reactstarterkit.com/)
  *
@@ -7,14 +9,14 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
-import browserSync from 'browser-sync';
+import BrowserSync from 'browser-sync';
 import webpack from 'webpack';
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
 import run from './run';
 
 global.WATCH = true;
-const clientConfig = require('../config/client.webpack'); // Client-side bundle configuration
+const clientConfig = require('../config/client.webpack').default; // Client-side bundle configuration
 const bundler = webpack(clientConfig);
 
 /**
@@ -25,38 +27,42 @@ async function start() {
   await run(require('./build'));
   await run(require('./serve'));
 
-  browserSync({
-    proxy: {
+  const browserSync = BrowserSync.create();
 
-      target: 'localhost:5000',
-
-      middleware: [
-        webpackDevMiddleware(bundler, {
-          // IMPORTANT: dev middleware can't access config, so we should
-          // provide publicPath by ourselves
-          publicPath: clientConfig.output.publicPath,
-
-          // Pretty colored output
-          stats: clientConfig.stats,
-
-          // For other settings see
-          // http://webpack.github.io/docs/webpack-dev-middleware.html
-        }),
-
-        // bundler should be the same as above
-        webpackHotMiddleware(bundler),
-      ],
-    },
-
-    // no need to watch '*.js' here, webpack will take care of it for us,
-    // including full page reloads if HMR won't work
-    files: [
-      'build/public/**/*.css',
-      'build/public/**/*.html',
-      'build/content/**/*.*',
-      'build/templates/**/*.*',
-    ],
+  /**
+   * Reload all devices when bundle is complete
+   * or send a fullscreen error message to the browser instead
+   */
+  bundler.plugin('done', function (stats) {
+      if (stats.hasErrors() || stats.hasWarnings()) {
+          return browserSync.sockets.emit('fullscreen:message', {
+              title: "Webpack Error:",
+              body:  stripAnsi(stats.toString()),
+              timeout: 100000
+          });
+      }
+      browserSync.reload();
   });
+
+  /**
+   * Run Browsersync and use middleware for Hot Module Replacement
+   */
+  browserSync.init({
+      proxy: {
+        target: 'localhost:3000',
+        middleware: [
+            webpackDevMiddleware(bundler, {
+                publicPath: clientConfig.output.publicPath,
+                stats: {colors: true}
+            }),
+            webpackHotMiddleware(bundler)
+        ]
+      },
+      open: true,
+      logFileChanges: false,
+      plugins: ['bs-fullscreen-message']
+  });
+
 }
 
 export default start;

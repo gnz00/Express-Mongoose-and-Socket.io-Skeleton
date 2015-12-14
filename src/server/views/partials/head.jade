@@ -45,7 +45,6 @@ head
   link(rel='author', href='humans.txt')
 
   //- Styles
-  link(rel='stylesheet', href='/css/main.min.css')
   block styles
 
   //- Fonts
@@ -67,6 +66,10 @@ head
   |   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   |   <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
   | <![endif]-->
+
+  //- Our injection spot
+  link(rel='stylesheet', href='/client.css')
+  script(src='/client.js')
 
   //- Google Analytics
   script.

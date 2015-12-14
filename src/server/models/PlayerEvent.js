@@ -7,4 +7,4 @@ const PlayerEvent = Mongoose.model('PlayerEvent',
   })
 );
 
-export default  PlayerEvent;
+export default PlayerEvent;

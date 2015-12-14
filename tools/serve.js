@@ -17,6 +17,7 @@ import watch from './lib/watch';
 function serve() {
   return new Promise((resolve, reject) => {
     function start() {
+
       const server = cp.spawn(
         'node',
         [path.join(__dirname, '../build/server.js')],
