@@ -8,8 +8,8 @@
  */
 
 import webpack from 'webpack';
-import clientConfig from './webpack/client';
-import serverConfig from './webpack/server';
+import clientConfig from '../config/webpack/client';
+import serverConfig from '../config/webpack/server';
 
 let webpackConfig = [clientConfig, serverConfig];
 

@@ -12,8 +12,8 @@
     "bundle": "./node_modules/babel-cli/bin/babel-node.js tools/run bundle",
     "build": "./node_modules/babel-cli/bin/babel-node.js tools/run build",
     "serve": "./node_modules/babel-cli/bin/babel-node.js tools/run serve",
-    "start": "./node_modules/babel-cli/bin/babel-node.js tools/run start",
-    "version": "which babel"
+    "version": "which babel",
+    "start": "./node_modules/babel-cli/bin/babel-node.js tools/run start"
   },
   "dependencies": {
     "animate.css": "^3.4.0",

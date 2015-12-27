@@ -16,7 +16,7 @@ import webpackHotMiddleware from 'webpack-hot-middleware';
 import run from './run';
 
 global.WATCH = true;
-const clientConfig = require('./webpack/client').default; // Client-side bundle configuration
+const clientConfig = require('../config/webpack/client').default; // Client-side bundle configuration
 const bundler = webpack(clientConfig);
 
 /**
