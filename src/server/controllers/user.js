@@ -8,8 +8,6 @@ import { Router } from 'express';
 import User from '../models/User';
 import Async from 'async';
 import Crypto from 'crypto';
-import config from '../config';
-import Passport from 'passport';
 import NodeMailer from 'nodemailer';
 import LoginAttempt from '../models/LoginAttempt';
 
@@ -18,6 +16,7 @@ import LoginAttempt from '../models/LoginAttempt';
  */
 
 const router = new Router();
+
 
 /**
  * GET /login
@@ -104,7 +103,7 @@ router.post('/login', function (req, res, next) {
         return workflow.emit('exception', err);
       }
 
-      if (results.ip >= config.loginAttempts.forIp || results.ipUser >= config.loginAttempts.forUser) {
+      if (results.ip >= ENV.loginAttempts.forIp || results.ipUser >= ENV.loginAttempts.forUser) {
         req.flash('error', { msg: 'You\'ve reached the maximum number of login attempts. Please try again later or reset your password.' });
         req.session.tooManyAttempts = true;
         return res.redirect('/login');
@@ -256,19 +255,19 @@ router.get('/verify/:id/:token', function (req, res) {
   workflow.on('sendWelcomeEmail', function (user) {
 
     // Create reusable transporter object using SMTP transport
-    var transporter = nodemailer.createTransport({
+    var transporter = NodeMailer.createTransport({
       service: 'Gmail',
       auth: {
-        user: config.gmail.user,
-        pass: config.gmail.password
+        user: ENV.gmail.user,
+        pass: ENV.gmail.password
       }
     });
 
     // Render HTML to send using .jade mail template (just like rendering a page)
     res.render('mail/welcome', {
       name:          user.profile.name,
-      mailtoName:    config.smtp.name,
-      mailtoAddress: config.smtp.address,
+      mailtoName:    ENV.smtp.name,
+      mailtoAddress: ENV.smtp.address,
       blogLink:      req.protocol + '://' + req.headers.host, // + '/blog',
       forumLink:     req.protocol + '://' + req.headers.host  // + '/forum'
     }, function (err, html) {
@@ -281,18 +280,18 @@ router.get('/verify/:id/:token', function (req, res) {
         var text = [
           'Hello ' + user.profile.name + '!',
           'We would like to welcome you as our newest member!',
-          'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + config.smtp.address + '.',
+          'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + ENV.smtp.address + '.',
           'If you want to get the latest scoop check out our <a href="' +
           req.protocol + '://' + req.headers.host + '/blog' +
           '">blog</a> and our <a href="' +
           req.protocol + '://' + req.headers.host + '/forums">forums</a>.',
-          '  - The ' + config.smtp.name + ' team'
+          '  - The ' + ENV.smtp.name + ' team'
         ].join('\n\n');
 
         // Create email
         var mailOptions = {
           to:       user.profile.name + ' <' + user.email + '>',
-          from:     config.smtp.name + ' <' + config.smtp.address + '>',
+          from:     ENV.smtp.name + ' <' + ENV.smtp.address + '>',
           subject:  'Welcome to ' + req.app.locals.application + '!',
           text:     text,
           html:     html
@@ -401,7 +400,7 @@ router.post('/signup', function (req, res, next) {
     var verified;
     var verifyToken;
 
-    if (config.verificationRequired) {
+    if (ENV.verificationRequired) {
       verified = false;
       // generate verification token
       crypto.randomBytes(25, function (err, buf) {
@@ -442,7 +441,7 @@ router.post('/signup', function (req, res, next) {
         }
         return res.redirect('back');
       } else {
-        if (config.verificationRequired) {
+        if (ENV.verificationRequired) {
           // next step (4a)
           workflow.emit('sendValidateEmail', user, verifyToken);
         } else {
@@ -461,18 +460,18 @@ router.post('/signup', function (req, res, next) {
   workflow.on('sendValidateEmail', function (user, verifyToken) {
 
     // Create reusable transporter object using SMTP transport
-    var transporter = nodemailer.createTransport({
+    var transporter = NodeMailer.createTransport({
       service: 'Gmail',
       auth: {
-        user: config.gmail.user,
-        pass: config.gmail.password
+        user: ENV.gmail.user,
+        pass: ENV.gmail.password
       }
     });
 
     // Render HTML to send using .jade mail template (just like rendering a page)
     res.render('mail/accountVerification', {
       name:          user.profile.name,
-      mailtoName:    config.smtp.name,
+      mailtoName:    ENV.smtp.name,
       validateLink:  req.protocol + '://' + req.headers.host + '/verify/' + user.id + '/' + verifyToken
     }, function (err, html) {
       if (err) {
@@ -485,13 +484,13 @@ router.post('/signup', function (req, res, next) {
           'Hello ' + user.profile.name + '!',
           'Welcome to ' + req.app.locals.application + '!  Here is a special link to activate your new account:',
           req.protocol + '://' + req.headers.host + '/verify/' + user.id + '/' + user.verifyToken,
-          '  - The ' + config.smtp.name + ' team'
+          '  - The ' + ENV.smtp.name + ' team'
         ].join('\n\n');
 
         // Create email
         var mailOptions = {
           to:       user.profile.name + ' <' + user.email + '>',
-          from:     config.smtp.name + ' <' + config.smtp.address + '>',
+          from:     ENV.smtp.name + ' <' + ENV.smtp.address + '>',
           subject:  'Activate your new ' + req.app.locals.application + ' account',
           text:     text,
           html:     html
@@ -524,19 +523,19 @@ router.post('/signup', function (req, res, next) {
   workflow.on('sendWelcomeEmail', function (user) {
 
     // Create reusable transporter object using SMTP transport
-    var transporter = nodemailer.createTransport({
+    var transporter = NodeMailer.createTransport({
       service: 'Gmail',
       auth: {
-        user: config.gmail.user,
-        pass: config.gmail.password
+        user: ENV.gmail.user,
+        pass: ENV.gmail.password
       }
     });
 
     // Render HTML to send using .jade mail template (just like rendering a page)
     res.render('mail/welcome', {
       name:          user.profile.name,
-      mailtoName:    config.smtp.name,
-      mailtoAddress: config.smtp.address,
+      mailtoName:    ENV.smtp.name,
+      mailtoAddress: ENV.smtp.address,
       blogLink:      req.protocol + '://' + req.headers.host, // + '/blog',
       forumLink:     req.protocol + '://' + req.headers.host  // + '/forum'
     }, function (err, html) {
@@ -549,18 +548,18 @@ router.post('/signup', function (req, res, next) {
         var text = [
           'Hello ' + user.profile.name + '!',
           'We would like to welcome you as our newest member!',
-          'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + config.smtp.address + '.',
+          'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + ENV.smtp.address + '.',
           'If you want to get the latest scoop check out our <a href="' +
           req.protocol + '://' + req.headers.host + '/blog' +
           '">blog</a> and our <a href="' +
           req.protocol + '://' + req.headers.host + '/forums">forums</a>.',
-          '  - The ' + config.smtp.name + ' team'
+          '  - The ' + ENV.smtp.name + ' team'
         ].join('\n\n');
 
         // Create email
         var mailOptions = {
           to:       user.profile.name + ' <' + user.email + '>',
-          from:     config.smtp.name + ' <' + config.smtp.address + '>',
+          from:     ENV.smtp.name + ' <' + ENV.smtp.address + '>',
           subject:  'Welcome to ' + req.app.locals.application + '!',
           text:     text,
           html:     html
@@ -596,7 +595,7 @@ router.post('/signup', function (req, res, next) {
         return res.redirect('back');
       }
       // send the right welcome message
-      if (config.twoFactor) {
+      if (ENV.twoFactor) {
         req.flash('warning', { msg: 'Welcome! We recommend turning on enhanced security in account settings.' });
         res.redirect('/api');
       } else {
@@ -742,19 +741,19 @@ router.post('/signupsocial', function (req, res, next) {
   workflow.on('sendWelcomeEmail', function (user) {
 
     // Create reusable transporter object using SMTP transport
-    var transporter = nodemailer.createTransport({
+    var transporter = NodeMailer.createTransport({
       service: 'Gmail',
       auth: {
-        user: config.gmail.user,
-        pass: config.gmail.password
+        user: ENV.gmail.user,
+        pass: ENV.gmail.password
       }
     });
 
     // Render HTML to send using .jade mail template (just like rendering a page)
     res.render('mail/welcome', {
       name:          user.profile.name,
-      mailtoName:    config.smtp.name,
-      mailtoAddress: config.smtp.address,
+      mailtoName:    ENV.smtp.name,
+      mailtoAddress: ENV.smtp.address,
       blogLink:      req.protocol + '://' + req.headers.host, // + '/blog',
       forumLink:     req.protocol + '://' + req.headers.host  // + '/forum'
     }, function (err, html) {
@@ -767,18 +766,18 @@ router.post('/signupsocial', function (req, res, next) {
         var text = [
           'Hello ' + user.profile.name + '!',
           'We would like to welcome you as our newest member!',
-          'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + config.smtp.address + '.',
+          'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + ENV.smtp.address + '.',
           'If you want to get the latest scoop check out our <a href="' +
           req.protocol + '://' + req.headers.host + '/blog' +
           '">blog</a> and our <a href="' +
           req.protocol + '://' + req.headers.host + '/forums">forums</a>.',
-          '  - The ' + config.smtp.name + ' team'
+          '  - The ' + ENV.smtp.name + ' team'
         ].join('\n\n');
 
         // Create email
         var mailOptions = {
           to:       user.profile.name + ' <' + user.email + '>',
-          from:     config.smtp.name + ' <' + config.smtp.address + '>',
+          from:     ENV.smtp.name + ' <' + ENV.smtp.address + '>',
           subject:  'Welcome to ' + req.app.locals.application + '!',
           text:     text,
           html:     html

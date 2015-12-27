@@ -5,7 +5,6 @@
  */
 
 var debug         = require('debug')('skeleton');       // https://github.com/visionmedia/debug
-var config        = require('../config/config');
 var nodemailer    = require('nodemailer');
 
 /**
@@ -50,14 +49,14 @@ module.exports.controller = function (app) {
     var transporter = nodemailer.createTransport({
       service: 'Gmail',
       auth: {
-        user: config.gmail.user,
-        pass: config.gmail.password
+        user: ENV.gmail.user,
+        pass: ENV.gmail.password
       }
     });
 
     // Create email
     var mailOptions = {
-      to:       config.smtp.name + ' <' + config.smtp.address + '>',
+      to:       ENV.smtp.name + ' <' + ENV.smtp.address + '>',
       from:     req.body.name + ' <' + req.body.email + '>',
       subject:  'Contact Form',
       text:     req.body.message + '\n\n' + req.body.name

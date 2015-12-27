@@ -6,9 +6,8 @@
 
 var User          = require('../models/User');
 var utils         = require('../config/utils');
-var config        = require('../config/config');
 var bcrypt        = require('bcrypt-nodejs');
-var twilio        = require('twilio')(config.twilio.sid, config.twilio.token);
+var twilio        = require('twilio')(ENV.twilio.sid, ENV.twilio.token);
 var passport      = require('passport');
 var passportConf  = require('../config/passport');
 
@@ -100,7 +99,7 @@ module.exports.controller = function (app) {
               // Send the SMS token to the User
               var message = {
                 to: user.profile.phone.mobile,
-                from: config.twilio.phone,
+                from: ENV.twilio.phone,
                 body: 'Your ' + app.locals.application + ' login code is: ' + sms + '.'
               };
               twilio.sendMessage(message, function (err, responseData) {
@@ -313,7 +312,7 @@ module.exports.controller = function (app) {
     var encodedKey = utils.encode(key);
     // Generate QR code
     // Reference: https://code.google.com/p/google-authenticator/wiki/KeyUriFormat
-    var otpUrl = 'otpauth://totp/' + config.name + ':%20' + req.user.email + '?issuer=' + config.name + '&secret=' + encodedKey + '&period=30';
+    var otpUrl = 'otpauth://totp/' + ENV.name + ':%20' + req.user.email + '?issuer=' + ENV.name + '&secret=' + encodedKey + '&period=30';
     var qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
     // Render the setup page
     res.render('twofactor/setup-totp', {
@@ -440,7 +439,7 @@ module.exports.controller = function (app) {
         // Send the SMS Text to the User
         var message = {
           to: req.body.phoneMobile,
-          from: config.twilio.phone,
+          from: ENV.twilio.phone,
           body: 'Your ' + app.locals.application + ' login code is: ' + sms + '.'
         };
         twilio.sendMessage(message, function (err, responseData) {

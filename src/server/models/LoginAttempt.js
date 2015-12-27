@@ -5,7 +5,6 @@
  */
 
 var mongoose  = require('mongoose');
-var config    = require('../config');
 
 /**
  * Define Login Attempts Schema
@@ -14,7 +13,7 @@ var config    = require('../config');
 var attemptSchema = new mongoose.Schema({
   ip: { type: String, default: '' },
   user: { type: String, default: '' },
-  time: { type: Date, default: Date.now, expires: config.loginAttempts.expires }
+  time: { type: Date, default: Date.now, expires: ENV.loginAttempts.expires }
 });
 
 /**

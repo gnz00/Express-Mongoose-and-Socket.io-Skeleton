@@ -21,7 +21,6 @@ import fs                from 'fs';                      // http://nodejs.org/do
 import path              from 'path';                    // http://nodejs.org/docs/v0.10.25/api/path.html
 import Debug             from 'debug';                   // https://github.com/visionmedia/debug
 import flash             from 'express-flash';           // https://npmjs.org/package/express-flash
-import config            from './config';                // Get configuration file
 import helmet            from 'helmet';                  // https://github.com/evilpacket/helmet
 import semver            from 'semver';                  // https://npmjs.org/package/semver
 import enforce           from 'express-sslify';          // https://github.com/florianheinemann/express-sslify
@@ -30,6 +29,7 @@ import connectMongo      from 'connect-mongo';           // https://npmjs.org/pa
 import expressValidator  from 'express-validator';       // https://npmjs.org/package/express-validator
 import SocketIO          from 'socket.io';
 import Grant             from 'grant-express';
+import { requestExtensions }              from './middlewares/auth';
 
 /**
  * Initialize variables
@@ -37,15 +37,15 @@ import Grant             from 'grant-express';
 let app = express();
 let server;
 let io;
-const httpEnabled = config.http && config.http.enable;
-const httpsEnabled = config.https && config.https.enable;
-const debug = Debug(config.name);
+const httpEnabled = ENV.http && ENV.http.enable;
+const httpsEnabled = ENV.https && ENV.https.enable;
+const debug = Debug(ENV.name);
 const mongoStore = connectMongo(session);
 const db = connectMongoDB();
-const grant = Grant(config.OAuth);
+const grant = Grant(ENV.OAuth);
 
 // Use Mongo for session store
-config.session.store  = new mongoStore({
+ENV.session.store  = new mongoStore({
   mongooseConnection: db,
   autoReconnect: true
 });
@@ -92,8 +92,8 @@ if (app.get('env') === 'production') {
   app.use(enforce.HTTPS(true));
 
   // Turn on HTTPS/SSL cookies
-  config.session.proxy = true;
-  config.session.cookie.secure = true;
+  ENV.session.proxy = true;
+  ENV.session.cookie.secure = true;
 
   app.use(helmet.contentSecurityPolicy({
       defaultSrc: ['\'none\''],
@@ -163,7 +163,7 @@ app.use(methodOverride());
 
 // Use sessions
 // NOTE: cookie-parser not needed with express-session > v1.5
-app.use(session(config.session));
+app.use(session(ENV.session));
 
 // Security Settings
 app.disable('x-powered-by');          // Don't advertise our server type
@@ -184,11 +184,14 @@ app.use(grant);
 
 // Keep user, csrf token and config available
 app.use(function (req, res, next) {
-  res.locals.user = req.user;
-  res.locals.config = config;
+  res.locals.user = req.session.user;
+  res.locals.config = ENV;
   res.locals._csrf = req.csrfToken();
   next();
 });
+
+/** Our middlewares */
+app.use(requestExtensions);
 
 // Flash messages
 app.use(flash());
@@ -323,16 +326,16 @@ db.on('disconnected', connectMongoDB);
 
 function connectMongoDB () {
   var options = { server: { socketOptions: { keepAlive: 1 } } };
-  return mongoose.connect(config.mongodb.url).connection;
+  return mongoose.connect(ENV.mongodb.url).connection;
 }
 
 
 function startApp() {
-    var port = httpsEnabled && config.https.port ||
-               httpEnabled && config.http.port;
+    var port = httpsEnabled && ENV.https.port ||
+               httpEnabled && ENV.http.port;
 
-    var host = httpsEnabled && config.https.host ||
-               httpEnabled && config.http.host || '0.0.0.0';
+    var host = httpsEnabled && ENV.https.host ||
+               httpEnabled && ENV.http.host || '0.0.0.0';
 
 
     app.set('host', host);
@@ -341,14 +344,15 @@ function startApp() {
     // Create the server
     if (httpsEnabled) {
          server = https.createServer({
-            key: fs.readFileSync(config.https.key),
-            cert: fs.readFileSync(config.https.cert)
+            key: fs.readFileSync(ENV.https.key),
+            cert: fs.readFileSync(ENV.https.cert)
         }, app);
         io = SocketIO(server);
     } else {
         server = http.createServer(app);
         io = SocketIO(server);
     }
+    
     // Provide access to the socket server in your controllers
     app.set('io', io);
 
@@ -360,7 +364,7 @@ function startApp() {
             res.redirect('https://' + req.hostname + urlPort + req.path);
         });
         http.createServer(redirectServer)
-            .listen(config.http.port || 5000, host, listen);
+            .listen(ENV.http.port || 5000, host, listen);
     }
 
     server.listen(port, host, listen);

@@ -1,17 +1,32 @@
-import bcrypt from'bcrypt-nodejs';
-import crypto from'crypto';
-import mongoose from'mongoose';
+'use strict';
+
+/**
+ * Module Dependencies
+ */
+
+var bcrypt    = require('bcrypt-nodejs');
+var crypto    = require('crypto');
+
+import Mongoose from 'mongoose';
+import Bluebird from 'bluebird';
+
+
+var mongoose = Bluebird.promisifyAll(Mongoose);
+
+/**
+ * Define User Schema
+ */
 
 var userSchema = new mongoose.Schema({
-  email: { type: String, unique: true, lowercase: true },
-  password: String,
 
-  facebook: String,
-  twitter: String,
-  google: String,
-  github: String,
-  instagram: String,
-  linkedin: String,
+  email: { type: String, unique: true, index: true },
+  password: { type: String },
+  type: { type: String, default: 'user' },
+
+  facebook: { type: String, unique: true, sparse: true },
+  twitter: { type: String, unique: true, sparse: true },
+  google: { type: String, unique: true, sparse: true },
+  github: { type: String, unique: true, sparse: true },
   tokens: Array,
 
   profile: {
@@ -19,40 +34,71 @@ var userSchema = new mongoose.Schema({
     gender: { type: String, default: '' },
     location: { type: String, default: '' },
     website: { type: String, default: '' },
-    picture: { type: String, default: '' }
+    picture: { type: String, default: '' },
+    phone: {
+      work: { type: String, default: '' },
+      home: { type: String, default: '' },
+      mobile: { type: String, default: '' }
+    }
   },
 
-  resetPasswordToken: String,
-  resetPasswordExpires: Date
+  activity: {
+    date_established: { type: Date, default: Date.now },
+    last_logon: { type: Date, default: Date.now },
+    last_updated: { type: Date }
+  },
+
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
+
+  verified: { type: Boolean, default: true },
+  verifyToken: { type: String },
+
+  enhancedSecurity: {
+    enabled: { type: Boolean, default: false },
+    type: { type: String },  // sms or totp
+    token: { type: String },
+    period: { type: Number },
+    sms: { type: String },
+    smsExpires: { type: Date }
+  }
+
 });
 
 /**
- * Password hash middleware.
+ * Hash the password and sms token for security.
  */
-userSchema.pre('save', function(next) {
+
+userSchema.pre('save', function (next) {
+
   var user = this;
+  var SALT_FACTOR = 5;
+
   if (!user.isModified('password')) {
     return next();
-  }
-  bcrypt.genSalt(10, function(err, salt) {
-    if (err) {
-      return next(err);
-    }
-    bcrypt.hash(user.password, salt, null, function(err, hash) {
+  } else {
+    bcrypt.genSalt(SALT_FACTOR, function (err, salt) {
       if (err) {
         return next(err);
       }
-      user.password = hash;
-      next();
+      bcrypt.hash(user.password, salt, null, function (err, hash) {
+        if (err) {
+          return next(err);
+        }
+        user.password = hash;
+        next();
+      });
     });
-  });
+  }
+
 });
 
 /**
- * Helper method for validating user's password.
+ * Check the user's password
  */
-userSchema.methods.comparePassword = function(candidatePassword, cb) {
-  bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
+
+userSchema.methods.comparePassword = function (candidatePassword, cb) {
+  bcrypt.compare(candidatePassword, this.password, function (err, isMatch) {
     if (err) {
       return cb(err);
     }
@@ -61,17 +107,34 @@ userSchema.methods.comparePassword = function(candidatePassword, cb) {
 };
 
 /**
- * Helper method for getting user's gravatar.
+ * Check user's SMS token
  */
-userSchema.methods.gravatar = function(size) {
+
+userSchema.methods.compareSMS = function (candidateSMS, cb) {
+  bcrypt.compare(candidateSMS, this.enhancedSecurity.sms, function (err, isMatch) {
+    if (err) {
+      return cb(err);
+    }
+    cb(null, isMatch);
+  });
+};
+
+/**
+ *  Get a URL to a user's Gravatar email.
+ */
+
+userSchema.methods.gravatar = function (size, defaults) {
   if (!size) {
     size = 200;
   }
-  if (!this.email) {
-    return 'https://gravatar.com/avatar/?s=' + size + '&d=retro';
+  if (!defaults) {
+    defaults = 'retro';
   }
-  var md5 = crypto.createHash('md5').update(this.email).digest('hex');
-  return 'https://gravatar.com/avatar/' + md5 + '?s=' + size + '&d=retro';
+  if (!this.email) {
+    return 'https://gravatar.com/avatar/?s=' + size + '&d=' + defaults;
+  }
+  var md5 = crypto.createHash('md5').update(this.email);
+  return 'https://gravatar.com/avatar/' + md5.digest('hex').toString() + '?s=' + size + '&d=' + defaults;
 };
 
-export default mongoose.model('User', userSchema);
+module.exports = mongoose.model('User', userSchema);

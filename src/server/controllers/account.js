@@ -8,7 +8,6 @@ var _             = require('lodash');
 var User          = require('../models/User');
 var debug         = require('debug')('skeleton');       // https://github.com/visionmedia/debug
 var utils         = require('../config/utils');
-var config        = require('../config/config');
 var passport      = require('passport');
 var nodemailer    = require('nodemailer');
 var passportConf  = require('../config/passport');
@@ -114,16 +113,16 @@ module.exports.controller = function (app) {
       var transporter = nodemailer.createTransport({
         service: 'Gmail',
         auth: {
-          user: config.gmail.user,
-          pass: config.gmail.password
+          user: ENV.gmail.user,
+          pass: ENV.gmail.password
         }
       });
 
       // Render HTML to send using .jade mail template (just like rendering a page)
       res.render('mail/accountChange', {
         name:          user.profile.name,
-        mailtoName:    config.smtp.name,
-        mailtoAddress: config.smtp.address
+        mailtoName:    ENV.smtp.name,
+        mailtoAddress: ENV.smtp.address
       }, function (err, html) {
         if (err) {
           return (err, null);
@@ -134,14 +133,14 @@ module.exports.controller = function (app) {
           var text = [
             'Hello ' + user.profile.name + '!',
             'This is a courtesy message to confirm that your profile information was just updated.',
-            'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + config.smtp.address + '.',
-            '  - The ' + config.smtp.name + ' team'
+            'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + ENV.smtp.address + '.',
+            '  - The ' + ENV.smtp.name + ' team'
           ].join('\n\n');
 
           // Create email
           var mailOptions = {
             to:       user.profile.name + ' <' + user.email + '>',
-            from:     config.smtp.name + ' <' + config.smtp.address + '>',
+            from:     ENV.smtp.name + ' <' + ENV.smtp.address + '>',
             subject:  'Your ' + app.locals.application + ' profile was updated',
             text:     text,
             html:     html
@@ -243,16 +242,16 @@ module.exports.controller = function (app) {
       var transporter = nodemailer.createTransport({
         service: 'Gmail',
         auth: {
-          user: config.gmail.user,
-          pass: config.gmail.password
+          user: ENV.gmail.user,
+          pass: ENV.gmail.password
         }
       });
 
       // Render HTML to send using .jade mail template (just like rendering a page)
       res.render('mail/passwordChange', {
         name:          user.profile.name,
-        mailtoName:    config.smtp.name,
-        mailtoAddress: config.smtp.address
+        mailtoName:    ENV.smtp.name,
+        mailtoAddress: ENV.smtp.address
       }, function (err, html) {
         if (err) {
           return (err, null);
@@ -263,14 +262,14 @@ module.exports.controller = function (app) {
           var text = [
             'Hello ' + user.profile.name + '!',
             'This is a courtesy message to confirm that your password was just changed.',
-            'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + config.smtp.address + '.',
-            '  - The ' + config.smtp.name + ' team'
+            'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + ENV.smtp.address + '.',
+            '  - The ' + ENV.smtp.name + ' team'
           ].join('\n\n');
 
           // Create email
           var mailOptions = {
             to:       user.profile.name + ' <' + user.email + '>',
-            from:     config.smtp.name + ' <' + config.smtp.address + '>',
+            from:     ENV.smtp.name + ' <' + ENV.smtp.address + '>',
             subject:  'Your ' + app.locals.application + ' password was changed',
             text:     text,
             html:     html
@@ -366,7 +365,7 @@ module.exports.controller = function (app) {
       // Let's check to make sure we don't already have an account with the same credentials
       User.findOne({ facebook: info.profile._json.id }, function (err, existingUser) {
         if (existingUser) {
-          req.flash('error', { msg: 'Your Facebook acoount is already connected to another ' + config.name + ' account!' });
+          req.flash('error', { msg: 'Your Facebook acoount is already connected to another ' + ENV.name + ' account!' });
           req.flash('info', { msg: 'Sign in with that account and delete it. Then sign back in (with this account) and link your Facebook account.' });
           return res.redirect('/account');
         } else {
@@ -414,7 +413,7 @@ module.exports.controller = function (app) {
       // Let's check to make sure we don't already have an account with the same credentials
       User.findOne({ twitter: info.profile._json.id }, function (err, existingUser) {
         if (existingUser) {
-          req.flash('error', { msg: 'Your Twitter acoount is already connected to another ' + config.name + ' account!' });
+          req.flash('error', { msg: 'Your Twitter acoount is already connected to another ' + ENV.name + ' account!' });
           req.flash('info', { msg: 'Sign in with that account and delete it. Then sign back in (with this account) and link your Twitter account.' });
           return res.redirect('/account');
         } else {
@@ -461,7 +460,7 @@ module.exports.controller = function (app) {
       // Let's check to make sure we don't already have an account with the same credentials
       User.findOne({ github: info.profile._json.id }, function (err, existingUser) {
         if (existingUser) {
-          req.flash('error', { msg: 'Your GitHub acoount is already connected to another ' + config.name + ' account!' });
+          req.flash('error', { msg: 'Your GitHub acoount is already connected to another ' + ENV.name + ' account!' });
           req.flash('info', { msg: 'Sign in with that account and delete it. Then sign back in (with this account) and link your GitHub account.' });
           return res.redirect('/account');
         } else {
@@ -509,7 +508,7 @@ module.exports.controller = function (app) {
       // Let's check to make sure we don't already have an account with the same credentials
       User.findOne({ google: info.profile._json.id }, function (err, existingUser) {
         if (existingUser) {
-          req.flash('error', { msg: 'Your Google acoount is already connected to another ' + config.name + ' account!' });
+          req.flash('error', { msg: 'Your Google acoount is already connected to another ' + ENV.name + ' account!' });
           req.flash('info', { msg: 'Sign in with that account and delete it. Then sign back in (with this account) and link your Google account.' });
           return res.redirect('/account');
         } else {

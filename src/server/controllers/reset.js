@@ -6,7 +6,6 @@
 
 var User          = require('../models/User');
 var debug         = require('debug')('skeleton');  // https://github.com/visionmedia/debug
-var config        = require('../config/config');
 var bcrypt        = require('bcrypt-nodejs');
 var nodemailer    = require('nodemailer');
 
@@ -170,16 +169,16 @@ module.exports.controller = function (app) {
       var transporter = nodemailer.createTransport({
         service: 'Gmail',
         auth: {
-          user: config.gmail.user,
-          pass: config.gmail.password
+          user: ENV.gmail.user,
+          pass: ENV.gmail.password
         }
       });
 
       // Render HTML to send using .jade mail template (just like rendering a page)
       res.render('mail/passwordChange', {
         name:          user.profile.name,
-        mailtoName:    config.smtp.name,
-        mailtoAddress: config.smtp.address
+        mailtoName:    ENV.smtp.name,
+        mailtoAddress: ENV.smtp.address
       }, function (err, html) {
         if (err) {
           return (err, null);
@@ -190,14 +189,14 @@ module.exports.controller = function (app) {
           var text = [
             'Hello ' + user.profile.name + '!',
             'This is a courtesy message to confirm that your password was just changed.',
-            'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + config.smtp.address + '.',
-            '  - The ' + config.smtp.name + ' team'
+            'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + ENV.smtp.address + '.',
+            '  - The ' + ENV.smtp.name + ' team'
           ].join('\n\n');
 
           // Create email
           var mailOptions = {
             to:       user.profile.name + ' <' + user.email + '>',
-            from:     config.smtp.name + ' <' + config.smtp.address + '>',
+            from:     ENV.smtp.name + ' <' + ENV.smtp.address + '>',
             subject:  'Your ' + app.locals.application + ' password was reset',
             text:     text,
             html:     html

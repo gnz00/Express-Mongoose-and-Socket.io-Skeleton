@@ -29,7 +29,7 @@ module.exports.controller = function (app) {
       name:          'Dan',
       resetLink:     req.protocol + '://' + req.headers.host + '/reset/',
       mailtoName:    'Skeleton',
-      mailtoAddress: 'config.smtp.address'
+      mailtoAddress: ENV.smtp.address
     });
   });
 

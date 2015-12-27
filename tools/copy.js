@@ -20,15 +20,15 @@ async function copy() {
   const ncp = Promise.promisify(require('ncp'));
 
   await Promise.all([
-    ncp('src/public', 'build/public'),
-    ncp('src/server/views', 'build/views'),
-    ncp('package.json', 'build/package.json')
+    ncp('src/public', 'dist/public'),
+    ncp('src/server/views', 'dist/views'),
+    ncp('package.json', 'dist/package.json')
   ]);
 
   replace({
     regex: '"start".*',
     replacement: '"start": "node server.js"',
-    paths: ['build/package.json'],
+    paths: ['dist/package.json'],
     recursive: false,
     silent: false,
   });
@@ -37,7 +37,7 @@ async function copy() {
     const watcher = await watch('src/server/views/**/*.*');
     watcher.on('changed', async (file) => {
       const relPath = file.substr(path.join(__dirname, '../src/server/views/').length);
-      await ncp(`src/server/views/${relPath}`, `build/views/${relPath}`);
+      await ncp(`src/server/views/${relPath}`, `dist/views/${relPath}`);
     });
   }
 }

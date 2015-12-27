@@ -2,11 +2,26 @@
  * Login Required middleware.
  */
 
+// Extensions to request
+export const requestExtensions = function (req, res, next) {
+  req.login = function(user, options = {}) {
+    req['session']['user'] = user;
+  }
+  req.logout = () => {
+    delete req['session']['user'];
+  }
+  req.isAuthenticated = () => {
+    return (req['session']['user']) ? true : false;
+  }
+  next();
+};
+
+// Route middleware
 export const isAuthenticated = function (req, res, next) {
   // Is the user authenticated?
   if (req.isAuthenticated()) {
     // Does the user have enhanced security enabled?
-    if (req.user.enhancedSecurity.enabled) {
+    if (req.session.user.enhancedSecurity.enabled) {
       // If we already have validated the second factor it's
       // a noop, otherwise redirect to capture the OTP.
       if (req.session.passport.secondFactor === 'validated') {
@@ -33,7 +48,7 @@ export const isAuthenticated = function (req, res, next) {
 
 export const isAuthorized = function (req, res, next) {
   var provider = req.path.split('/').slice(-1)[0];
-  if (_.find(req.user.tokens, { kind: provider })) {
+  if (_.find(req.session.user.tokens, { kind: provider })) {
     // we found the provider so just continue
     next();
   } else {
@@ -55,7 +70,7 @@ export const isAdministrator = function (req, res, next) {
   // make sure we are logged in first
   if (req.isAuthenticated()) {
     // user must be be an administrator
-    if (req.user.type !== 'admin') {
+    if (req.session.user.type !== 'admin') {
       req.flash('error', { msg: 'You must be an Administrator reach that page.' });
       return res.redirect('/api');
     } else {

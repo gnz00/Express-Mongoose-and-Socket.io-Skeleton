@@ -6,7 +6,6 @@
 
 var User          = require('../models/User');
 var debug         = require('debug')('skeleton');  // https://github.com/visionmedia/debug
-var config        = require('../config/config');
 var bcrypt        = require('bcrypt-nodejs');
 var crypto        = require('crypto');             // http://nodejs.org/api/crypto.html#crypto_crypto
 var nodemailer    = require('nodemailer');
@@ -168,8 +167,8 @@ module.exports.controller = function (app) {
       var transporter = nodemailer.createTransport({
         service: 'Gmail',
         auth: {
-          user: config.gmail.user,
-          pass: config.gmail.password
+          user: ENV.gmail.user,
+          pass: ENV.gmail.password
         }
       });
 
@@ -177,8 +176,8 @@ module.exports.controller = function (app) {
       res.render('mail/passwordReset', {
         name:          user.profile.name,
         resetLink:     req.protocol + '://' + req.headers.host + '/reset/' + user.id + '/' + token,
-        mailtoName:    config.smtp.name,
-        mailtoAddress: config.smtp.address
+        mailtoName:    ENV.smtp.name,
+        mailtoAddress: ENV.smtp.address
       }, function (err, html) {
         if (err) {
           return (err, null);
@@ -190,14 +189,14 @@ module.exports.controller = function (app) {
             'Hello ' + user.profile.name + '!',
             'Here is a special link that will allow you to reset your password. Please note it will expire in four hours for your protection:',
             req.protocol + '://' + req.headers.host + '/reset/' + user.id + '/' + token,
-            'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + config.smtp.address + '.',
-            '  - The ' + config.smtp.name + ' team'
+            'Thanks so much for using our services! If you have any questions, or suggestions, feel free to email us here at ' + ENV.smtp.address + '.',
+            '  - The ' + ENV.smtp.name + ' team'
           ].join('\n\n');
 
           // Create email
           var mailOptions = {
             to:       user.profile.name + ' <' + user.email + '>',
-            from:     config.smtp.name + ' <' + config.smtp.address + '>',
+            from:     ENV.smtp.name + ' <' + ENV.smtp.address + '>',
             subject:  'Reset your ' + app.locals.application + ' password',
             text:     text,
             html:     html

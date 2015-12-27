@@ -20,7 +20,7 @@ function serve() {
 
       const server = cp.spawn(
         'node',
-        [path.join(__dirname, '../build/server.js')],
+        [path.join(__dirname, '../dist/server.js')],
         {
           env: Object.assign({ NODE_ENV: 'development' }, process.env),
           silent: false,
@@ -44,7 +44,7 @@ function serve() {
     let server = start();
 
     if (global.WATCH) {
-      watch('build/server.js').then(watcher => {
+      watch('dist/server.js').then(watcher => {
         watcher.on('changed', () => {
           server.kill('SIGTERM');
           server = start();
